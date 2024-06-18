@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-types'; 
 import Box from '@mui/material/Box';
 import { bgBlur } from 'src/theme/css';
 import Stack from '@mui/material/Stack';
@@ -21,7 +21,7 @@ export default function Header({ onOpenNav }) {
   const theme = useTheme();
 
   const lgUp = useResponsive('up', 'lg');
-
+ // comment
   const renderContent = (
     <>
       {!lgUp && (
