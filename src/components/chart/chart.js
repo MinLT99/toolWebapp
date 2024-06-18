@@ -1,7 +1,7 @@
-import { alpha, styled } from '@mui/material/styles';
 import { memo } from 'react';
 import { bgBlur } from 'src/theme/css';
 import ApexChart from 'react-apexcharts';
+import { alpha, styled } from '@mui/material/styles';
 
 // ----------------------------------------------------------------------
 

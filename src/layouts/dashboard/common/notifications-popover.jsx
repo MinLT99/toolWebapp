@@ -2,7 +2,6 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { set, sub } from 'date-fns';
 import { faker } from '@faker-js/faker';
-
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Badge from '@mui/material/Badge';
@@ -11,6 +10,8 @@ import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import Popover from '@mui/material/Popover';
+import Iconify from 'src/components/iconify';
+import { fToNow } from 'src/utils/format-time';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
@@ -18,9 +19,6 @@ import ListSubheader from '@mui/material/ListSubheader';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemButton from '@mui/material/ListItemButton';
 
-import { fToNow } from 'src/utils/format-time';
-
-import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 
 // ----------------------------------------------------------------------

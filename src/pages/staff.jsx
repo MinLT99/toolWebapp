@@ -1,16 +1,16 @@
 import { Helmet } from 'react-helmet-async';
-import { BlogView } from 'src/sections/blog/view';
+import StaffList from 'src/sections/blog/view/StaffList';
 
 // ----------------------------------------------------------------------
 
-export default function BlogPage() {
+export default function StaffPage() {
   return (
     <>
       <Helmet>
-        <title> Đơn vị trực thuộc </title>
+        <title> Danh sách cán bộ </title>
       </Helmet>
 
-      <BlogView />
+      <StaffList />
     </>
   );
 }

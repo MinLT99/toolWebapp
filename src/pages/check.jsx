@@ -1,5 +1,4 @@
 import { Helmet } from 'react-helmet-async';
-
 import { CheckView } from 'src/sections/check';
 // ----------------------------------------------------------------------
 

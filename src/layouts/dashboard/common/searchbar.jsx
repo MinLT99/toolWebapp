@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import Slide from '@mui/material/Slide';
 import Input from '@mui/material/Input';
 import Button from '@mui/material/Button';
@@ -9,9 +8,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 
 import { bgBlur } from 'src/theme/css';
-
 import Iconify from 'src/components/iconify';
-
 // ----------------------------------------------------------------------
 
 const HEADER_MOBILE = 64;
