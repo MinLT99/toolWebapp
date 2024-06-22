@@ -26,12 +26,7 @@ const navConfig = [
     title: 'tài khoản',
     path: '/user',
     icon: icon('ic_user'),
-  },
-  {
-    title: 'đăng nhập',
-    path: '/login',
-    icon: icon('ic_lock'),
-  },
+  }
 ];
 
 export default navConfig;

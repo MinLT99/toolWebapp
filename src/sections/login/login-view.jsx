@@ -12,29 +12,72 @@ import Iconify from 'src/components/iconify';
 import Logo from 'src/components/logo';
 import { useRouter } from 'src/routes/hooks';
 import { bgGradient } from 'src/theme/css';
+import axios from 'axios';
+import { login } from '../../routes/auth';
 
 // ----------------------------------------------------------------------
 
 export default function LoginView() {
-  const theme = useTheme();
 
+  const theme = useTheme();
   const router = useRouter();
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [credentials, setCredentials] = useState({
+    username: '',
+    password: '',
+  });
 
-  const handleClick = () => {
-    router.push('/dashboard');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setCredentials({ ...credentials, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      // const mockUsername = 'testuser';
+      // const mockPassword = 'password123';
+      // if (credentials.username === mockUsername && credentials.password === mockPassword) {
+      //   const token = 'example_token';
+      //   login(token); // Save token to localStorage
+      //   router.push('/');
+      // } else {
+      //   throw new Error('Invalid credentials');
+      // }
+
+      const response = await axios.post('http://192.168.3.101:19999/api/users/login', credentials);
+      const token = response.data.token
+      const username = response.data.username
+      login(token, username);
+      router.push('/');
+    } catch (error) {
+      console.error('Error logging in:', error);
+      alert('Failed to log in. Please check your credentials and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderForm = (
-    <>
+    <form onSubmit={handleSubmit}>
       <Stack spacing={3}>
-        <TextField name="email" label="Nhập tài khoản" />
+
+        <TextField
+          name="username"
+          label="Nhập tài khoản"
+          value={credentials.username}
+          onChange={handleChange}
+        />
 
         <TextField
           name="password"
           label="Mật khẩu"
           type={showPassword ? 'text' : 'password'}
+          value={credentials.password}
+          onChange={handleChange}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -59,11 +102,11 @@ export default function LoginView() {
         type="submit"
         variant="contained"
         color="inherit"
-        onClick={handleClick}
+        loading={loading}
       >
         Login
       </LoadingButton>
-    </>
+    </form>
   );
 
   return (

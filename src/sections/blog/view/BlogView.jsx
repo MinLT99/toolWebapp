@@ -1,7 +1,24 @@
-import { React, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Paper } from '@mui/material';
+import { styled } from '@mui/system';
 import axios from 'axios';
+import { getToken } from 'src/routes/auth';
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  padding: theme.spacing(1.5),
+  textAlign: 'center',
+}));
+
+const StyledTableHeaderCell = styled(StyledTableCell)(({ theme }) => ({
+  fontWeight: 'bold',
+  backgroundColor: theme.palette.common.white,
+  color: theme.palette.common.black,
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  marginRight: theme.spacing(1),
+}));
 
 function BlogView() {
   const [unitData, setUnitData] = useState([]);
@@ -10,57 +27,74 @@ function BlogView() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch data from API when component mounts
-        const response = await axios.get('http://192.168.3.101:5000/api/team/?committee_id=66698af1828bde24029ed147');
+        const response = await axios.get('http://192.168.3.101:19999/api/teams',
+          { headers: { Authorization: `Bearer ${getToken()}` } }
+        );
         setUnitData(response.data);
+        setError(null); // Clear any previous error if fetch succeeds
       } catch (error) {
         console.error('Error fetching unit data:', error);
         setError('Failed to fetch data. Please try again later.');
       }
     };
 
-    fetchData(); // Call fetchData function to initiate data fetching
-  }, []); // Empty dependency array ensures useEffect runs only once
+    fetchData();
+  }, []);
+  // useEffect(() => {
+  //   // Dữ liệu cứng để thử nghiệm
+  //   const hardcodedData = [
+  //     { _id: '1', name: 'Đơn vị 1' },
+  //     { _id: '2', name: 'Đơn vị 2' },
+  //     { _id: '3', name: 'Đơn vị 3' },
+  //   ];
+
+  //   setUnitData(hardcodedData);
+  //   setError(null); // Xóa lỗi trước đó nếu lấy dữ liệu thành công
+  // }, []);
 
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
         Danh sách đơn vị
       </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>TT</TableCell>
-              <TableCell>Đơn vị</TableCell>
-              <TableCell>Chức năng</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {unitData.map((row, index) => (
-              <TableRow key={row._id} >
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>{row.name}</TableCell>
-                <TableCell>
-                  {/* Link to 'dvtt/staff' route */}
-                  <Link to={`/dvtt/staff/${row._id}`}>
-                    <Button variant="contained" color="primary" style={{ marginRight: '10px' }}>
-                      Danh sách cán bộ
-                    </Button>
-                  </Link>
-                  {/* Link to '/dvtt/pages' route */}
-                  <Link to="/dvtt/pages">
-                    <Button variant="contained" color="secondary">
-                      Danh sách trang
-                    </Button>
-                  </Link>
-                </TableCell>
+      {error ? (
+        <Typography variant="h5" color="error" style={{ textAlign: 'center' }}>
+          {error}
+        </Typography>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <StyledTableHeaderCell>TT</StyledTableHeaderCell>
+                <StyledTableHeaderCell>Đơn vị</StyledTableHeaderCell>
+                <StyledTableHeaderCell>Chức năng</StyledTableHeaderCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Container >
+            </TableHead>
+            <TableBody>
+              {unitData.map((row, index) => (
+                <TableRow key={row._id}>
+                  <StyledTableCell>{index + 1}</StyledTableCell>
+                  <StyledTableCell>{row.name}</StyledTableCell>
+                  <StyledTableCell>
+                    <Link to={`/dvtt/staff/${row._id}`}>
+                      <StyledButton variant="contained" color="primary">
+                        Danh sách cán bộ
+                      </StyledButton>
+                    </Link>
+                    <Link to={`/dvtt/pages/${row._id}`}>
+                      <Button variant="contained" color="secondary">
+                        Danh sách trang
+                      </Button>
+                    </Link>
+                  </StyledTableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Container>
   );
 }
 

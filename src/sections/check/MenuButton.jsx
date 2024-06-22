@@ -27,7 +27,7 @@ export default function MenuButton({ setSelectedMenuItem }) {
                 aria-controls="menu"
                 aria-haspopup="true"
             >
-                Menu
+                Chọn phương thức kiểm tra
             </Button>
             <Menu
                 id="menu"

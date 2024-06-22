@@ -4,6 +4,8 @@ import Button from '@mui/material/Button';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import axios from 'axios';
 import DisplayTable from './displayData'; // Assuming DisplayTable is correctly imported
+import { getToken } from 'src/routes/auth';
+import { initializeWebSocket } from './../../hooks/ws';
 
 const CustomTextarea = ({ value, onChange }) => (
     <TextareaAutosize
@@ -29,6 +31,24 @@ export default function PostContent() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [dataTable, setDataTable] = useState([]);
+    const [dataApi, setDataApi] = useState(null);
+
+    useEffect(() => {
+        const cleanupWebSocket = initializeWebSocket(
+            (payload) => {
+                alert(JSON.stringify(payload));
+            },
+            () => {
+                alert("Mất kết nối đến máy chủ");
+            }
+        );
+
+        // Cleanup WebSocket khi component bị unmount
+        return () => {
+            cleanupWebSocket();
+        };
+    }, []);
+
 
     const handleChange = (event) => {
         const urls = event.target.value.split(',').map(url => url.trim()).filter(url => url);
@@ -40,8 +60,8 @@ export default function PostContent() {
         setLoading(true);
 
         try {
-            const requestBody = { pageUrls: inputUrls };
-            const response = await axios.post('http://localhost:5000/api/crawl', requestBody);
+            const requestBody = inputUrls;
+            const response = await axios.post('http://192.168.3.101:19999/api/crawl/post', requestBody, { headers: { Authorization: `Bearer ${getToken()}` } });
 
             if (response.status === 200) {
                 setDataTable(response.data); // Update state with response data
@@ -54,6 +74,22 @@ export default function PostContent() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get('http://192.168.3.101:19999/api/crawl/result', { headers: { Authorization: `Bearer ${getToken()}` } });
+                setDataApi(response.data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     // Example of using useEffect to observe loading state changes
     useEffect(() => {
@@ -69,8 +105,11 @@ export default function PostContent() {
                 </Button>
             </Box>
             {error && <p style={{ color: 'red' }}>{error}</p>}
-            {/* Conditionally render DisplayTable if dataTable has data */}
-            {dataTable.length > 0 && <DisplayTable data={dataTable} />}
+            {(Array.isArray(dataTable) && dataTable.length > 0) ? (
+                <DisplayTable data={dataTable} />
+            ) : (
+                <DisplayTable data={Array.isArray(dataApi) ? dataApi : []} />
+            )}
         </>
     );
 }

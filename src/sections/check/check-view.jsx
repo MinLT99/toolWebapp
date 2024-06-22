@@ -41,9 +41,6 @@ export default function CheckView() {
 
       {selectedMenuItem === 'page' && (
         <Box mt={4}>
-          <Typography variant="h5" gutterBottom>
-            Chọn trang để kiểm tra
-          </Typography>
           <PageCheckTable />
         </Box>
       )}

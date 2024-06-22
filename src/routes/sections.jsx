@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react';
 import DashboardLayout from 'src/layouts/dashboard';
-import { Outlet, Navigate, useRoutes } from 'react-router-dom';
+import { Outlet, Navigate, useRoutes, useNavigate } from 'react-router-dom';
 import { element } from 'prop-types';
+import { isAuthenticated } from './auth';
 
 export const IndexPage = lazy(() => import('src/pages/app'));
 export const BlogPage = lazy(() => import('src/pages/blog'));
@@ -18,12 +19,14 @@ export const PageList = lazy(() => import('src/sections/blog/view/PageList'));
 export default function Router() {
   const routes = useRoutes([
     {
-      element: (
+      element: isAuthenticated() ? (
         <DashboardLayout>
-          <Suspense>
+          <Suspense fallback={<div>Loading...</div>}>
             <Outlet />
           </Suspense>
         </DashboardLayout>
+      ) : (
+        <Navigate to="/login" replace />
       ),
       children: [
         { element: <IndexPage />, index: true },
@@ -31,11 +34,9 @@ export default function Router() {
         { path: 'products', element: <ProductsPage /> },
         {
           path: 'dvtt', element: <BlogPage />,
-          children: [
-            { path: 'staff/:id', element: <StaffPage /> },
-            { path: 'pages', element: <PageList /> },
-          ],
         },
+        { path: 'dvtt/staff/:id', element: <StaffPage /> },
+        { path: 'dvtt/pages/:id', element: <PageList /> },
         { path: 'check', element: <CheckPage /> }
       ]
     },
