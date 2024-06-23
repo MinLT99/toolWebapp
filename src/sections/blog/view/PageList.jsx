@@ -25,18 +25,6 @@ function PageList() {
         fetchPages();
     }, [id]);
 
-    // useEffect(() => {
-    //     // Dữ liệu cứng để thử nghiệm
-    //     const hardcodedData = [
-    //         { _id: '1', page: 'Fanpage 1', url: 'http://example.com/1' },
-    //         { _id: '2', page: 'Fanpage 2', url: 'http://example.com/2' },
-    //         { _id: '3', page: 'Fanpage 3', url: 'http://example.com/3' },
-    //     ];
-
-    //     setPageData(hardcodedData);
-    //     setError(null); // Xóa lỗi trước đó nếu có
-    // }, [id]);
-
     return (
         <Container>
             <Typography variant="h4" component="h1" gutterBottom>
