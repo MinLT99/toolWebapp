@@ -1,28 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material';
-// import EditIcon from '@mui/icons-material/Edit';
-// import DeleteIcon from '@mui/icons-material/Delete';
+import {
+  Container,
+  Button,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField
+} from '@mui/material';
 import axios from 'axios';
 import { getToken } from 'src/routes/auth';
+import { useRouter } from 'src/routes/hooks';
 
 function StaffList() {
-  const { id } = useParams(); // Lấy id từ URL
+  const { id } = useParams();
+  const token = getToken();
   const [staffList, setStaffList] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [open, setOpen] = useState(false);
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [addStaffDialog, setAddStaffDialog] = useState({
-    fullname: '',
-    url: '',
+    team_id: id,
+    url: "",
+    profile_name: "",
+    fullname: "",
+  });
+  const [editStaffDialog, setEditStaffDialog] = useState({
+    profile_id: "",
+    new_info: {
+      fullname: "",
+    }
   });
 
+  const router = useRouter();
+  // Fetch staff data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://192.168.3.101:19999/api/teams/${id}/profiles`,
-          { headers: { Authorization: `Bearer ${getToken()}` } }
-        );
+        const response = await axios.get(`http://192.168.3.101:19999/api/teams/${id}/profiles`, {
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
         setStaffList(response.data);
       } catch (error) {
         console.error('Error fetching staff data:', error);
@@ -33,179 +61,273 @@ function StaffList() {
     fetchData(); // Gọi fetchData khi component mount và khi id thay đổi
   }, [id]);
 
-  const addStaff = (staff) => {
-    setOpen(true)
-    setAddStaffDialog({
-      ...selectedStaff,
-      [staff.target.name]: staff.target.value,
-    });
-  }
-
-  const handleEdit = (staff) => {
-    setSelectedStaff(staff);
-    setOpen(true);
+  // Handle input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setAddStaffDialog(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
   };
 
-  const handleDelete = (staffId) => {
-    console.log(`Delete staff with ID: ${staffId}`);
-    // Thực hiện các hành động xóa nhân viên, ví dụ mở xác nhận xóa, gọi API xóa, cập nhật lại danh sách nhân viên, vv.
+  const handleInputChangeEdit = (e) => {
+    const { name, value } = e.target;
+    setEditStaffDialog(prevState => ({
+      ...prevState,
+      new_info: {
+        ...prevState.new_info,
+        [name]: value
+      }
+    }));
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  // Open add staff dialog
+  const handleAddStaffOpen = () => {
+    setOpenAdd(true);
+  };
+
+  // Handle dialog close
+  const handleDialogClose = () => {
+    setOpenAdd(false);
+    setOpenEdit(false);
     setSelectedStaff(null);
   };
 
-  const handleSave = () => {
-    console.log(`Save changes for staff with ID: ${selectedStaff._id}`);
-    // Thực hiện các hành động lưu thông tin đã chỉnh sửa, ví dụ gọi API để lưu thay đổi
-    setOpen(false);
+  // Open edit staff dialog
+  const handleEditOpen = (staff) => {
+    setSelectedStaff(staff);
+    setEditStaffDialog({
+      profile_id: staff._id,
+      new_info: {
+        fullname: staff.fullname,
+        url: staff.url,
+        profile_name: staff.profile_name,
+      }
+    });
+    setOpenEdit(true);
+  };
+  // Handle save edit
+  const handleSaveEdit = async () => {
+    try {
+      console.log(editStaffDialog.profile_id);
+      // Lấy token từ nơi nào đó
+      const response = await axios.put(
+        'http://192.168.3.101:19999/api/profiles/update',
+        editStaffDialog,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      router.reload();
+      handleDialogClose();
+    } catch (error) {
+      setError(error.message);
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedStaff(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
+  // Handle save add
+  const handleSaveAdd = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Lấy token từ nơi nào đó
+      const response = await axios.post(
+        'http://192.168.3.101:19999/api/profiles/new',
+        [addStaffDialog],  // Gửi dữ liệu từ state addStaffDialog lên server
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      router.reload();
+      handleDialogClose();
+    } catch (error) {
+      setError(error.message);
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAdd = (e) => {
-    const { name, value } = e.target;
-    setSelectedStaff(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
+  // Handle delete staff
+  const handleDelete = async (staffId) => {
+    console.log(staffId);
+    try {
+      await axios.delete(
+        `http://192.168.3.101:19999/api/profiles/${staffId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      router.reload();
+    } catch (error) {
+      setError(error.message);
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Danh sách cán bộ
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        style={{ marginBottom: '10px' }}
-        onClick={addStaff}
-      >
-        Bổ sung cán bộ
-      </Button>
+      <Header handleAddStaffOpen={handleAddStaffOpen} />
       {error && <Typography color="error">{error}</Typography>}
-      {!error && (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>TT</TableCell>
-                <TableCell>Tên cán bộ</TableCell>
-                <TableCell>Đường dẫn</TableCell>
-                <TableCell>Chức năng</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {staffList.map((staff, index) => (
-                <TableRow key={staff._id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{staff.fullname}</TableCell>
-                  <TableCell>
-                    <a href={staff.url} target="_blank" rel="noopener noreferrer">{staff.url}</a>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handleEdit(staff)}
-                      style={{ marginRight: '10px' }}
-                    >
-                      {/* <EditIcon /> */}
-                      Sửa
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={() => handleDelete(staff._id)}
-                    >
-                      {/* <DeleteIcon /> */}
-                      Xoá
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-
-      {selectedStaff && (
-        <Dialog open={open} onClose={handleClose}>
-          <DialogTitle>Sửa thông tin cán bộ</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              name="fullname"
-              label="Tên cán bộ"
-              type="text"
-              fullWidth
-              value={selectedStaff.fullname}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              name="url"
-              label="Đường dẫn"
-              type="text"
-              fullWidth
-              value={selectedStaff.url}
-              onChange={handleChange}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose} color="primary">
-              Hủy
-            </Button>
-            <Button onClick={handleSave} color="primary">
-              Lưu
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
-
-      {addStaffDialog && (
-        <Dialog open={open} onClose={handleClose}>
-          <DialogTitle>Thêm người mới</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              name="fullname"
-              label="Tên người"
-              type="text"
-              fullWidth
-              onChange={handleAdd}
-            />
-            <TextField
-              margin="dense"
-              name="url"
-              label="Đường dẫn"
-              type="text"
-              fullWidth
-              onChange={handleAdd}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose} color="primary">
-              Hủy
-            </Button>
-            <Button onClick={handleSave} color="primary">
-              Thêm
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      {!error && <StaffTable staffList={staffList} handleEditOpen={handleEditOpen} handleDelete={handleDelete} />}
+      <EditDialog
+        openEdit={openEdit}
+        selectedStaff={selectedStaff}
+        handleDialogClose={handleDialogClose}
+        handleSaveEdit={handleSaveEdit}
+        handleInputChangeEdit={handleInputChangeEdit}
+      />
+      <AddDialog
+        openAdd={openAdd}
+        addStaffDialog={addStaffDialog}
+        handleDialogClose={handleDialogClose}
+        handleSaveAdd={handleSaveAdd}
+        handleInputChange={handleInputChange}
+      />
     </Container>
   );
 }
+
+// Header component
+const Header = ({ handleAddStaffOpen }) => (
+  <>
+    <Typography variant="h4" component="h1" gutterBottom>
+      Danh sách cán bộ
+    </Typography>
+    <Button
+      variant="contained"
+      color="primary"
+      style={{ marginBottom: '10px' }}
+      onClick={handleAddStaffOpen}
+    >
+      Bổ sung cán bộ
+    </Button>
+  </>
+);
+
+// StaffTable component
+const StaffTable = ({ staffList, handleEditOpen, handleDelete }) => (
+  <TableContainer component={Paper}>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell>TT</TableCell>
+          <TableCell>Tên cán bộ</TableCell>
+          <TableCell>Đường dẫn</TableCell>
+          <TableCell>Chức năng</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {staffList.map((staff, index) => (
+          <TableRow key={staff._id}>
+            <TableCell>{index + 1}</TableCell>
+            <TableCell>{staff.fullname}</TableCell>
+            <TableCell>
+              <a href={staff.url} target="_blank" rel="noopener noreferrer">{staff.url}</a>
+            </TableCell>
+            <TableCell>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleEditOpen(staff)}
+                style={{ marginRight: '10px' }}
+              >
+                Sửa
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => handleDelete(staff._id)}
+              >
+                Xoá
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </TableContainer>
+);
+
+// EditDialog component
+const EditDialog = ({ openEdit, selectedStaff, handleDialogClose, handleSaveEdit, handleInputChangeEdit, editStaffDialog }) => (
+
+  <Dialog open={openEdit} onClose={handleDialogClose}>
+    <DialogTitle>Sửa thông tin cán bộ</DialogTitle>
+    <DialogContent>
+      <TextField
+        autoFocus
+        margin="dense"
+        name="fullname"
+        label="Tên cán bộ"
+        type="text"
+        fullWidth
+        defaultValue={selectedStaff?.fullname || ''}
+        // value={editStaffDialog?.fullname || ''}
+        onChange={(e) => handleInputChangeEdit(e)}
+      />
+      <TextField
+        margin="dense"
+        name="url"
+        label="Đường dẫn"
+        type="text"
+        fullWidth
+        defaultValue={selectedStaff?.url || ''}
+        // value={editStaffDialog?.url || ''}
+        onChange={(e) => handleInputChangeEdit(e)}
+      />
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleDialogClose} color="primary">
+        Hủy
+      </Button>
+      <Button onClick={handleSaveEdit} color="primary">
+        Lưu
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
+
+// AddDialog component
+const AddDialog = ({ openAdd, addStaffDialog, handleDialogClose, handleSaveAdd, handleInputChange, }) => (
+  <Dialog open={openAdd} onClose={handleDialogClose}>
+    <DialogTitle>Thêm người mới</DialogTitle>
+    <DialogContent>
+      <TextField
+        autoFocus
+        margin="dense"
+        name="fullname"
+        label="Tên cán bộ"
+        type="text"
+        fullWidth
+
+        onChange={(e) => handleInputChange(e)}
+      />
+      <TextField
+        margin="dense"
+        name="profile_name"
+        label="Tên facebook"
+        type="text"
+        fullWidth
+        onChange={(e) => handleInputChange(e)}
+      />
+      <TextField
+        margin="dense"
+        name="url"
+        label="Đường dẫn"
+        type="text"
+        fullWidth
+        onChange={(e) => handleInputChange(e)}
+      />
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleDialogClose} color="primary">
+        Hủy
+      </Button>
+      <Button onClick={handleSaveAdd} color="primary">
+        Thêm
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
 
 export default StaffList;

@@ -15,6 +15,11 @@ export const getToken = () => {
     return localStorage.getItem('token');
 };
 
+// Function to remove token from localStorage
+export const removeToken = () => {
+    localStorage.removeItem('token');
+};
+
 export const setUsername = (username) => {
     localStorage.setItem('username', username);
 };
@@ -23,18 +28,32 @@ export const getUsername = () => {
     return localStorage.getItem('username');
 };
 
-// Function to remove token from localStorage
-export const removeToken = () => {
-    localStorage.removeItem('token');
+export const removeUsername = () => {
+    localStorage.removeItem('username');
+};
+
+export const setFullname = (fullname) => {
+    localStorage.setItem('fullname', fullname);
+};
+
+export const getFullname = () => {
+    return localStorage.getItem('fullname');
+};
+
+export const removeFullname = () => {
+    localStorage.removeItem('fullname');
 };
 
 // Function to handle login (including storing token)
-export const login = (token, username) => {
+export const login = (token, username, fullname) => {
     setToken(token);
     setUsername(username)
+    setFullname(fullname)
 };
 
 // Function to handle logout (including removing token)
 export const logout = () => {
     removeToken();
+    removeUsername();
+    removeFullname();
 };

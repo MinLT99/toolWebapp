@@ -1,7 +1,9 @@
 // ----------------------------------------------------------------------
 
+import { getFullname, getUsername } from "src/routes/auth";
+
 export const account = {
-  displayName: 'Jaydon Frankie',
-  email: 'demo@minimals.cc',
+  fullname: getFullname(),
+  username: getUsername(),
   photoURL: '/assets/images/avatars/avatar_25.jpg',
 };

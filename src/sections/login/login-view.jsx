@@ -13,12 +13,12 @@ import Logo from 'src/components/logo';
 import { useRouter } from 'src/routes/hooks';
 import { bgGradient } from 'src/theme/css';
 import axios from 'axios';
-import { login } from '../../routes/auth';
-
+import { getUsername, login, setUsername } from '../../routes/auth';
+import { Navigate, useNavigate } from 'react-router-dom';
 // ----------------------------------------------------------------------
 
 export default function LoginView() {
-
+  const navigate = useNavigate();
   const theme = useTheme();
   const router = useRouter();
 
@@ -38,21 +38,11 @@ export default function LoginView() {
     e.preventDefault();
     setLoading(true);
     try {
-      // const mockUsername = 'testuser';
-      // const mockPassword = 'password123';
-      // if (credentials.username === mockUsername && credentials.password === mockPassword) {
-      //   const token = 'example_token';
-      //   login(token); // Save token to localStorage
-      //   router.push('/');
-      // } else {
-      //   throw new Error('Invalid credentials');
-      // }
-
       const response = await axios.post('http://192.168.3.101:19999/api/users/login', credentials);
-      const token = response.data.token
-      const username = response.data.username
-      login(token, username);
-      router.push('/');
+      const {token, username, fullname} = response.data
+      login(token, username, fullname);
+      // router.push('/');
+      navigate('/', { state: { username: username , fullname:fullname} });
     } catch (error) {
       console.error('Error logging in:', error);
       alert('Failed to log in. Please check your credentials and try again.');
