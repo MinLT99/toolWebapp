@@ -58,11 +58,11 @@ export default function PostContent() {
     const handleClick = async () => {
         setError(null); // Clear previous errors
         setLoading(true);
-
+        console.log(getToken());
+        console.log(inputUrls);
         try {
             const requestBody = inputUrls;
             const response = await axios.post('http://192.168.3.101:19999/api/crawl/post', requestBody, { headers: { Authorization: `Bearer ${getToken()}` } });
-
             if (response.status === 200) {
                 setDataTable(response.data); // Update state with response data
             } else {

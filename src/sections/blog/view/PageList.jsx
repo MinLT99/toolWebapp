@@ -9,24 +9,34 @@ function PageList() {
     const { id } = useParams();
     const token = getToken();
     const [pageData, setPageData] = useState([]);
+    const [idDelete, setIdDelete] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const [confirmDelete, setConfirmDelete] = useState(false)
     const [openDialogAdd, setOpenDialogAdd] = useState(false)
+    const [openEdit, setOpenEdit] = useState(false);
+    const [selectedPage, setSelectedPage] = useState(null);
     const [addPage, setAddPage] = useState({
         team_id: id,
         name: '',
         url: '',
         prioritized: false,
     })
+    const [editPage, setEditPage] = useState({
+        _id: '',
+        name: '',
+        url: '',
+        prioritized: false,
+    })
+
+    //hiển thị dữ liệu
     useEffect(() => {
         const fetchPages = async () => {
             try {
                 const response = await axios.get(`http://192.168.3.101:19999/api/teams/${id}/pages`,
                     { headers: { Authorization: `Bearer ${getToken()}` } });
                 setPageData(response.data);
-                console.log(response.data);
             } catch (error) {
                 console.error('Error fetching page data:', error);
                 setError('Failed to fetch data. Please try again later.');
@@ -40,6 +50,7 @@ function PageList() {
     const dialogAddPage = () => {
         setOpenDialogAdd(true)
     }
+    //nhập giá trị bổ sung trang
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setAddPage(prevState => ({
@@ -50,6 +61,7 @@ function PageList() {
     const handleDialogClose = () => {
         setOpenDialogAdd(false)
     }
+    //xử lý lưu trang mới
     const handleSaveAdd = async () => {
         setLoading(true);
         setError(null);
@@ -71,9 +83,63 @@ function PageList() {
         }
     }
 
+    //sửa thông tin trang
+    const handleEditPage = (page) => {
+        console.log(page.name);
+        setSelectedPage(page)
+        setEditPage({
+            _id: page._id,
+            name: page.name,
+            url: page.url,
+            prioritized: false,
+        })
+        setOpenEdit(true)
+    }
+    const closeEditDialog = () => {
+        setOpenEdit(false)
+    }
+    const handleInputChangeEdit = (e) => {
+
+    };
+    const handleEditPageSave = (page) => {
+        setSelectedPage(page);
+        setEditPage({
+            _id: page._id,
+            name: page.name,
+            url: page.url,
+            prioritized: false,
+        });
+        setOpenEdit(true);
+    }
+    const handleSaveEdit = async () => {
+        try {
+            console.log('edit');
+            const response = await axios.put(
+                'http://192.168.3.101:19999/api/pages',
+                editPage,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            router.reload();
+            closeEditDialog();
+        } catch (error) {
+            setError(error.message);
+            console.error('Error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    //mở dialog confirm delete
+    const dialogConfirmDelete = (page) => {
+        setIdDelete(page)
+        setConfirmDelete(true)
+    }
+    const handleDialogDeleteClose = () => {
+        setConfirmDelete(false)
+    }
     const handleConfirmDelete = async () => {
         try {
-            await axios.delete(`http://192.168.3.101:19999/api/pages/${pageToDelete._id}`, {
+            await axios.delete(`http://192.168.3.101:19999/api/pages/${idDelete}`, {
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
             router.reload();
@@ -116,7 +182,7 @@ function PageList() {
                                     <Button
                                         variant="contained"
                                         color="primary"
-                                        onClick={() => handleEditOpen(staff)}
+                                        onClick={() => handleEditPage(row)}
                                         style={{ marginRight: '10px' }}
                                     >
                                         Sửa
@@ -124,7 +190,7 @@ function PageList() {
                                     <Button
                                         variant="contained"
                                         color="secondary"
-                                        onClick={() => handleDelete(staff._id)}
+                                        onClick={() => dialogConfirmDelete(row._id)}
                                     >
                                         Xoá
                                     </Button>
@@ -134,14 +200,29 @@ function PageList() {
                     </TableBody>
                 </Table>
             </TableContainer>
+
             <DialogAddPage
                 openDialogAdd={openDialogAdd}
-                onClick={dialogAddPage}
                 handleInputChange={handleInputChange}
                 handleDialogClose={handleDialogClose}
                 handleSaveAdd={handleSaveAdd}
                 addPage={addPage}
             ></DialogAddPage>
+
+            <DialogDelete
+                confirmDelete={confirmDelete}
+                handleConfirmDelete={handleConfirmDelete}
+                handleDialogDeleteClose={handleDialogDeleteClose}
+            ></DialogDelete>
+
+            <DialogEdit
+                openEdit={openEdit}
+                closeEditDialog={closeEditDialog}
+                handleSaveEdit={handleSaveEdit}
+                selectedPage={selectedPage}
+                handleEditPageSave={handleEditPageSave}
+                handleInputChangeEdit={handleInputChangeEdit}
+            ></DialogEdit>
         </Container>
     );
 }
@@ -178,21 +259,55 @@ const DialogAddPage = ({ openDialogAdd, handleDialogClose, handleSaveAdd, handle
         </DialogActions>
     </Dialog>
 );
-const DialogDelete = ({ openDialogAdd, handleDialogClose, handleSaveAdd, handleInputChange, }) => (
-    <Dialog open={openDialogDelete} onClose={handleDialogDeleteClose}>
-                <DialogTitle>Xác nhận xóa</DialogTitle>
-                <DialogContent>
-                    <Typography>Bạn có chắc chắn muốn xóa trang này không?</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleDialogDeleteClose} color="primary">
-                        Hủy
-                    </Button>
-                    <Button onClick={handleConfirmDelete} color="secondary">
-                        Xóa
-                    </Button>
-                </DialogActions>
-            </Dialog>
+const DialogDelete = ({ confirmDelete, handleDialogDeleteClose, handleConfirmDelete }) => (
+    <Dialog open={confirmDelete} onClose={handleDialogDeleteClose}>
+        <DialogTitle>Xác nhận xóa</DialogTitle>
+        <DialogContent>
+            <Typography>Bạn có chắc chắn muốn xóa trang này không?</Typography>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={handleDialogDeleteClose} color="primary">
+                Hủy
+            </Button>
+            <Button onClick={handleConfirmDelete} color="secondary">
+                Xóa
+            </Button>
+        </DialogActions>
+    </Dialog>
+);
+const DialogEdit = ({ openEdit, closeEditDialog, handleInputChangeEdit, handleSaveEdit, handleEditPageSave, selectedPage }) => (
+    <Dialog open={openEdit} onClose={closeEditDialog}>
+        <DialogTitle>Sửa thông tin trang</DialogTitle>
+        <DialogContent>
+            <TextField
+                autoFocus
+                margin="dense"
+                name="name"
+                label="Tên trang"
+                type="text"
+                fullWidth
+                defaultValue={selectedPage?.name || ''}
+                onChange={handleInputChangeEdit}
+            />
+            <TextField
+                margin="dense"
+                name="url"
+                label="Đường dẫn"
+                type="text"
+                fullWidth
+                defaultValue={selectedPage?.url || ''}
+                onChange={handleInputChangeEdit}
+            />
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={closeEditDialog} color="primary">
+                Hủy
+            </Button>
+            <Button onClick={handleSaveEdit} color="primary">
+                Lưu
+            </Button>
+        </DialogActions>
+    </Dialog>
 );
 
 

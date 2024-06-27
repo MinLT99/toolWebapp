@@ -6,7 +6,7 @@ export function initializeWebSocket(onMessage, onClose) {
   socket.addEventListener("open", (event) => {
       // Gửi dữ liệu đến máy chủ
       let payload = {
-          username: getUsername(),
+          username: "phuongnt_cm22",
       };
       socket.send(JSON.stringify(payload));
   });
