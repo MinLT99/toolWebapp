@@ -1,0 +1,106 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "description": "This is a  API for user management and Facebook data crawling",
+      "version": "1.0.0",
+      "title": "Crawler API"
+    },
+    "host": "localhost:5000",
+    "basePath": "/api",
+    "tags": [
+      {
+        "name": "users",
+        "description": "Operations about users"
+      },
+      {
+        "name": "crawl",
+        "description": "Operations about crawling"
+      }
+    ],
+    "schemes": ["http"],
+    "paths": {
+      "/users": {
+        "get": {
+          "tags": ["users"],
+          "summary": "List all users",
+          "description": "Returns a list of users",
+          "produces": ["application/json"],
+          "responses": {
+            "200": {
+              "description": "A list of users",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/User"
+                }
+              }
+            }
+          }
+        }
+      },
+      "/crawl": {
+        "post": {
+          "tags": ["crawl"],
+          "summary": "Crawl Facebook data",
+          "description": "Crawls Facebook data based on provided URLs",
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "parameters": [
+            {
+              "in": "body",
+              "name": "pageUrls",
+              "description": "URLs to crawl",
+              "required": true,
+              "schema": {
+                "type": "object",
+                "required": ["pageUrls"],
+                "properties": {
+                  "pageUrls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful retrieval of data",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Error occurred"
+            }
+          }
+        }
+      }
+    },
+    "definitions": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+  
